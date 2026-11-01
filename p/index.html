@@ -7,15 +7,19 @@
 <meta name="referrer" content="no-referrer">
 <title>ぺあぷら</title>
 <style>
-:root{--night:#141A3C;--panel:#1E2650;--panel2:#262F62;--ink:#F3EFE2;--sub:#C7CBE8;--rule:#3A4276;--gold:#F6CF6B}
+:root{--night:#0E1336;--panel:rgba(30,38,88,.55);--panel2:rgba(58,66,130,.45);--ink:#F3EFE2;--sub:#C7CBE8;--rule:rgba(199,203,232,.28);--gold:#F6CF6B}
 *{box-sizing:border-box}
-body{margin:0;background:var(--night);color:var(--ink);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif}
-main{max-width:480px;margin:0 auto;padding:32px 16px 48px}
+html{background:var(--night)}
+body{margin:0;min-height:100vh;background:linear-gradient(#090D2B,#151B4A 55%,#2B2666) fixed;color:var(--ink);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif}
+#sky{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
+main{position:relative;max-width:480px;margin:0 auto;padding:32px 16px 48px}
+.logo::before,.send::before{content:'\2726';margin-right:6px}
 .logo{color:var(--gold);font:700 16px "Hiragino Mincho ProN","Yu Mincho",serif;margin:0}
 h1{font:700 28px/1.4 "Hiragino Mincho ProN","Yu Mincho",serif;margin:12px 0 4px}
 h2{font-size:15px;margin:24px 0 8px}
 .sub{color:var(--sub);font-size:14px;margin:4px 0}
-.step{border:1px solid var(--rule);border-radius:10px;padding:14px;margin-top:10px;background:var(--panel)}
+.step{position:relative;border:1px solid var(--rule);border-radius:14px;padding:14px;margin-top:10px;background:var(--panel)}
+.time::before{content:'\2726';margin-right:4px}
 .time{color:var(--gold);font-size:13px;font-weight:700}
 .name{font-weight:700;display:block}
 .label{color:var(--sub);font-size:13px}
@@ -34,6 +38,7 @@ button[aria-pressed=true]{background:var(--gold);border-color:var(--gold);color:
 </style>
 </head>
 <body>
+<canvas id="sky" aria-hidden="true"></canvas>
 <main>
   <p class="logo">ぺあぷら</p>
   <div id="root"><p class="sub">読み込んでいます…</p></div>
@@ -43,6 +48,35 @@ button[aria-pressed=true]{background:var(--gold);border-color:var(--gold);color:
 (function () {
   var API = 'https://exsgqczdfxzgcivfkate.supabase.co/functions/v1/pairpla-suggest';
   var root = document.getElementById('root');
+
+  // アプリと同じ星空を描く（毎回同じ配置）
+  (function () {
+    var c = document.getElementById('sky');
+    var w = innerWidth, h = innerHeight, r = devicePixelRatio || 1, s = 20261108;
+    c.width = w * r;
+    c.height = h * r;
+    var g = c.getContext('2d');
+    g.scale(r, r);
+    function rnd() { s = (s * 16807) % 2147483647; return s / 2147483647; }
+    for (var i = 0; i < 110; i++) {
+      g.globalAlpha = 0.25 + rnd() * 0.6;
+      g.fillStyle = '#fff';
+      g.beginPath();
+      g.arc(rnd() * w, rnd() * h, 0.4 + rnd() * 0.9, 0, 7);
+      g.fill();
+    }
+    g.globalAlpha = 0.75;
+    for (var j = 0; j < 12; j++) {
+      var x = rnd() * w, y = rnd() * h, q = 3 + rnd() * 4, k = q * 0.1;
+      g.beginPath();
+      g.moveTo(x, y - q);
+      g.quadraticCurveTo(x + k, y - k, x + q, y);
+      g.quadraticCurveTo(x + k, y + k, x, y + q);
+      g.quadraticCurveTo(x - k, y + k, x - q, y);
+      g.quadraticCurveTo(x - k, y - k, x, y - q);
+      g.fill();
+    }
+  })();
   var token = new URLSearchParams(location.search).get('t') || '';
 
   // 画面の文字は相手が入力したものも含むので、必ず textContent で入れる
